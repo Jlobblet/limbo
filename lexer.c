@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-#include <stdio.h>
 #include "lexer.h"
 #include "error.h"
 #include "unicode.h"
@@ -155,7 +154,7 @@ Token *read_number_literal(LexerContext *context, char *start, char **new_positi
 
             case RADIX_CHAR:
             case RADIX:
-                if (isdigit(c)) {
+                if (isdigit(c) || isalpha(c)) {
                     state = RADIX;
                     break;
                 }
