@@ -14,6 +14,12 @@ static char *KEYWORDS[] = {
         "string", "tagof", "tl", "to", "type","while",
 };
 
+/// Create a new token.
+/// \param self Pointer to the token to initialise.
+/// \param context The lexer context.
+/// \param kind The kind of token.
+/// \param start The start of the token.
+/// \param end The end of the token.
 static void Token_new(Token *self, LexerContext *context, TokenKind kind,
                       char *start, const char *end) {
     self->kind = kind;
@@ -26,6 +32,11 @@ static void Token_new(Token *self, LexerContext *context, TokenKind kind,
     self->source_file = context->source_file;
 }
 
+/// Calculate the value of a digit in the given base.
+/// \param c The digit to calculate the value of.
+/// \param base The base to use.
+/// \return The value of the digit in the given base, or `-1` if it is invalid.
+/// \remark The base must be between 2 and 36.
 static i32 digit(char c, i32 base) {
     i32 value;
     if (isdigit(c)) {
@@ -43,44 +54,51 @@ static i32 digit(char c, i32 base) {
     return value;
 }
 
-f64 strtodb(char *str, i32 base) {
+/// Convert a string into a floating point number with the specified base.
+/// \param nptr The string to convert.
+/// \param endptr A pointer that is set to the end of the parsed number.
+/// \param base The base of the number.
+/// \return The floating point value of the string.
+/// \remark The base must be between 2 and 36.
+/// \remark
+f64 strtodb(char *nptr, char **endptr, i32 base) {
     f64 number = 0.0;
     bool negative = false, exponent_negative = false;
     i32 decimal_digits = 0, exponent = 0, d;
     char c;
 
-    c = *str++;
+    c = *nptr++;
     if (c == '-' || c == '+') {
         negative = c == '-';
-        c = *str++;
+        c = *nptr++;
     }
 
     while ((d = digit(c, base)) >= 0) {
         number = number * base + d;
-        c = *str++;
+        c = *nptr++;
     }
 
-    if (c == '.') { c = *str++; }
+    if (c == '.') { c = *nptr++; }
 
     while ((d = digit(c, base)) >= 0) {
         number = number * base + d;
         decimal_digits++;
-        c = *str++;
+        c = *nptr++;
     }
 
     if (c == 'e' || c == 'E') {
-        c = *str++;
+        c = *nptr++;
         if(c == '-' || c == '+') {
             if(c == '-') {
                 decimal_digits = -decimal_digits;
                 exponent_negative = true;
             }
-            c = *str++;
+            c = *nptr++;
         }
 
         while ((d = digit(c, base)) >= 0) {
             exponent = exponent * base + d;
-            c = *str++;
+            c = *nptr++;
         }
     }
 
@@ -96,21 +114,28 @@ f64 strtodb(char *str, i32 base) {
 
     if (negative) { number = -number; }
 
+    if (endptr) { *endptr = nptr; }
+
     return number;
 }
 
+/// Read a number literal.
+/// \param context The lexer context.
+/// \param start The starting position in the source file.
+/// \param new_position The position to update to after the number.
+/// \return The token.
+/// \note
+///     Decimal integer constants consist of a sequence of decimal digits. A
+///     constant with an explicit radix consists of a decimal radix followed by
+///     `R` or `r` followed by the digits of the number. The radix is between
+///     2 and 36 inclusive; digits above 10 in the number are expressed using
+///     letters `A` to `Z` or `a` to `z`. For example, `16r20` has value 32.
+///
+///     Real constants consist of a sequence of decimal digits containing one
+///     period `.` and optionally followed by `e` or `E` and then by a possibly
+///     signed integer. If there is an explicit exponent, the period is not
+///     required.
 Token *read_number_literal(LexerContext *context, char *start, char **new_position) {
-    // Decimal integer constants consist of a sequence of decimal digits. A
-    // constant with an explicit radix consists of a decimal radix followed by
-    // `R` or `r` followed by the digits of the number. The radix is between
-    // 2 and 36 inclusive; digits above 10 in the number are expressed using
-    // letters `A` to `Z` or `a` to `z`. For example, `16r20` has value 32.
-    //
-    // Real constants consist of a sequence of decimal digits containing one
-    // period `.` and optionally followed by `e` or `E` and then by a possibly
-    // signed integer. If there is an explicit exponent, the period is not
-    // required.
-
     // in regex: [0-9]+(r[0-9A-Za-z]+)? or ([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?
 
     char *p = start;
@@ -241,7 +266,7 @@ Token *read_number_literal(LexerContext *context, char *start, char **new_positi
             if (int_value < 2 || int_value > 36) {
                 error_at(context->source_file, start, "invalid radix in number literal");
             }
-            real_value = strtodb(buffer, (int)int_value);
+            real_value = strtodb(buffer, NULL, (int)int_value);
             break;
     }
 

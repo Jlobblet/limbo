@@ -97,7 +97,6 @@ typedef struct LexerContext {
     bool follows_space;
 } LexerContext;
 
-f64 strtodb(char *str, i32 base);
 Token *read_number_literal(LexerContext *context, char *start, char **new_position);
 
 // Token manipulation
