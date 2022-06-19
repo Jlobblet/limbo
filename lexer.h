@@ -58,18 +58,19 @@ struct Token {
     /// \remark If `TokenKind` is not `TOKEN_STRING`, then this is `NULL`.
     char *string_value;
     /// The value of the token if it is an integral number literal.
-    /// \remark If `TokenKind` is not `TOKEN_NUMBER`, then this is `NULL`.
-    /// \remark This can also be `NULL` if the number is not an integral
-    /// number.
+    /// \remark If `TokenKind` is not `TOKEN_NUMBER`, then this is zero.
+    /// \remark If `TokenKind` is `TOKEN_NUMBER`, but the number is a real
+    /// number, then this is zero.
     /// \see token_kind
     /// \see real_value
-    i64 *num_value;
+    i64 int_value;
     /// The value of the token if it is a decimal number literal.
-    /// \remark If `TokenKind` is not `TOKEN_NUMBER`, then this is `NULL`.
-    /// \remark This can also be `NULL` if the number is not a decimal number.
+    /// \remark If `TokenKind` is not `TOKEN_NUMBER`, zero.
+    /// \remark If `TokenKind` is `TOKEN_NUMBER`, but the number is an integral
+    /// number, then this is zero.
     /// \see token_kind
-    /// \see num_value
-    f64 *real_value;
+    /// \see int_value
+    f64 real_value;
 
     // Source file information
     /// The source file that this token came from.
@@ -96,9 +97,14 @@ typedef struct LexerContext {
     bool follows_space;
 } LexerContext;
 
+f64 strtodb(char *str, i32 base);
+Token *read_number_literal(LexerContext *context, char *start, char **new_position);
+
 // Token manipulation
 
 // File manipulation
+
+bool lex(SourceFile *file, Token **tokens);
 
 /// Convert a source file into an array of `Token`s.
 /// \param filepath The path to the source file.

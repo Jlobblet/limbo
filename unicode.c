@@ -197,33 +197,28 @@ uptr display_width(char *str, uptr len) {
 }
 
 bool is_identifier_start(u32 codepoint) {
+    // TODO find out all allowed codepoints for the start of an identifier
     static Interval allowed_ranges[] = {
             {'A', 'Z'},
             {'a', 'z'},
             {'_', '_'},
-            // 0xa0 is the start of Latin-1 TODO see if this should be more restrictive
-            {0xa0, 0x10ffff},
     };
     int num_ranges = sizeof(allowed_ranges) / sizeof(*allowed_ranges);
     assert(is_sorted_range(allowed_ranges, num_ranges));
-    return is_in_sorted_range(codepoint, allowed_ranges, num_ranges)
-        || (codepoint >= 0xa0);
+    return is_in_sorted_range(codepoint, allowed_ranges, num_ranges);
 }
 
 bool is_identifier_rest(u32 codepoint) {
+    // TODO find out all allowed codepoints for the rest of an identifier
     static Interval allowed_ranges[] = {
             {'0', '9'},
             {'A', 'Z'},
             {'a', 'z'},
             {'_', '_'},
-            // 0xa0 is the start of Latin-1 TODO see if this should be more restrictive
-            // (as above)
-            {0xa0, 0x10ffff},
     };
     int num_ranges = sizeof(allowed_ranges) / sizeof(*allowed_ranges);
     assert(is_sorted_range(allowed_ranges, num_ranges));
-    return is_in_sorted_range(codepoint, allowed_ranges, num_ranges)
-        || (codepoint >= 0xA0);
+    return is_in_sorted_range(codepoint, allowed_ranges, num_ranges);
 }
 
 bool is_identifier(char *str, uptr len) {
