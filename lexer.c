@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 #include "lexer.h"
 #include "error.h"
 #include "unicode.h"
@@ -147,16 +148,17 @@ Token *read_number_literal(LexerContext *context, char *start, char **new_positi
                 }
                 if (c == 'r' || c == 'R') {
                     state = RADIX_CHAR;
-                    base = calloc(length + 1, sizeof(char));
-                    strncpy(base, buffer, length);
-                    base[length] = '\0';
+                    base = &buffer[length];
                     break;
                 }
                 goto finished;
 
             case RADIX_CHAR:
             case RADIX:
-                if (isdigit(c)) break;
+                if (isdigit(c)) {
+                    state = RADIX;
+                    break;
+                }
                 if (c == '.') {
                     state = FRACTION_B;
                     break;
@@ -215,14 +217,15 @@ Token *read_number_literal(LexerContext *context, char *start, char **new_positi
             error_at(context->source_file, start, "malformed number literal");
 
         case RADIX:
+            *base++ = '\0';
             // Parse the base
-            int_value = strtoll(base, NULL, 10);
+            int_value = strtoll(buffer, NULL, 10);
             // validate
             if (int_value < 2 || int_value > 36) {
                 error_at(context->source_file, start, "invalid radix in number literal");
             }
             // Parse the number
-            int_value = strtoll(buffer, NULL, (int)int_value);
+            int_value = strtoll(base, NULL, (int)int_value);
             break;
 
         case INTEGER:
