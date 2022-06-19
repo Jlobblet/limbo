@@ -262,18 +262,31 @@ Token *read_number_literal(LexerContext *context, char *start, char **new_positi
             break;
 
         case FRACTION_B:
-            int_value = strtoll(base, NULL, 10);
+            *base++ = '\0';
+            int_value = strtoll(buffer, NULL, 10);
             if (int_value < 2 || int_value > 36) {
                 error_at(context->source_file, start, "invalid radix in number literal");
             }
-            real_value = strtodb(buffer, NULL, (int)int_value);
+            real_value = strtodb(base, NULL, (int)int_value);
             break;
     }
 
     Token *token = calloc(1, sizeof(Token));
-    Token_new(token, context, TOKEN_NUMBER, start, p);
-    token->int_value = int_value;
-    token->real_value = real_value;
+    Token_new(token, context, TOKEN_INTEGRAL, start, p);
+    switch (state) {
+        case RADIX:
+        case INTEGER:
+            token->int_value = int_value;
+            break;
+        case FRACTION:
+        case FRACTION_B:
+        case EXPONENT:
+            token->real_value = real_value;
+            token->kind = TOKEN_REAL;
+            break;
+        default:
+            error("internal compiler error: unexpected state in number literal %d", state);
+    }
     *new_position = p;
     return token;
 }
@@ -374,7 +387,7 @@ static Token *read_char_literal(LexerContext *context, char *start, char **new_p
     }
 
     Token *token = calloc(1, sizeof(Token));
-    Token_new(token, context, TOKEN_NUMBER, start, end);
+    Token_new(token, context, TOKEN_INTEGRAL, start, end);
     token->int_value = c;
 
     *new_position = end + 1;

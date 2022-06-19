@@ -18,8 +18,10 @@ typedef enum TokenKind {
     TOKEN_KEYWORD,
     /// A token representing a string literal.
     TOKEN_STRING,
-    /// A token representing a number literal of any type.
-    TOKEN_NUMBER,
+    /// A token representing an integral number literal.
+    TOKEN_INTEGRAL,
+    /// A token representing a floating-point number literal.
+    TOKEN_REAL,
     /// A token representing the end of a file.
     TOKEN_EOF,
 } TokenKind;
@@ -58,15 +60,15 @@ struct Token {
     /// \remark If `TokenKind` is not `TOKEN_STRING`, then this is `NULL`.
     char *string_value;
     /// The value of the token if it is an integral number literal.
-    /// \remark If `TokenKind` is not `TOKEN_NUMBER`, then this is zero.
-    /// \remark If `TokenKind` is `TOKEN_NUMBER`, but the number is a real
+    /// \remark If `TokenKind` is not `TOKEN_INTEGRAL`, then this is zero.
+    /// \remark If `TokenKind` is `TOKEN_INTEGRAL`, but the number is a real
     /// number, then this is zero.
     /// \see token_kind
     /// \see real_value
     i64 int_value;
     /// The value of the token if it is a decimal number literal.
-    /// \remark If `TokenKind` is not `TOKEN_NUMBER`, zero.
-    /// \remark If `TokenKind` is `TOKEN_NUMBER`, but the number is an integral
+    /// \remark If `TokenKind` is not `TOKEN_INTEGRAL`, zero.
+    /// \remark If `TokenKind` is `TOKEN_INTEGRAL`, but the number is an integral
     /// number, then this is zero.
     /// \see token_kind
     /// \see int_value
