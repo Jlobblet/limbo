@@ -11,6 +11,6 @@ typedef uintptr_t uptr;
 typedef int32_t i32;
 typedef int64_t i64;
 typedef intptr_t iptr;
-typedef long double f64;
+typedef double f64;
 
 #endif //LIMBO_NUM_H
