@@ -613,3 +613,14 @@ Token *lex(SourceFile *file) {
 
     return head.next;
 }
+
+void Token_free(Token* head) {
+    while (head != NULL) {
+        Token *next = head->next;
+        if (head->kind == TOKEN_STRING) {
+            free((void *)head->string_value);
+        }
+        free(head);
+        head = next;
+    }
+}

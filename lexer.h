@@ -108,6 +108,10 @@ typedef struct LexerContext {
 
 // Token manipulation
 
+/// Free a linked list of tokens.
+/// \param token The first token in the linked list.
+void Token_free(Token* head);
+
 // File manipulation
 
 /// Create a lexer context from a source file.

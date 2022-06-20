@@ -44,18 +44,6 @@ void print_token(Token* token) {
            token->source_file_line, token->source_file_column, buffer);
 }
 
-void token_free(Token* head) {
-    Token *current = head;
-    while (current != NULL) {
-        Token *next = current->next;
-        if (current->kind == TOKEN_STRING) {
-            free((void *)current->string_value);
-        }
-        free(current);
-        current = next;
-    }
-}
-
 int main() {
     char *program =
             "implement Command;\n"
@@ -86,7 +74,7 @@ int main() {
         current = current->next;
     }
 
-    token_free(head);
+    Token_free(head);
 
     return EXIT_SUCCESS;
 }
