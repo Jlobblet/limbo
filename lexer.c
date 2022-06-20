@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 #include "lexer.h"
 #include "error.h"
 #include "unicode.h"
@@ -13,6 +14,15 @@ static char *KEYWORDS[] = {
         "nil", "of", "or", "pick", "real", "ref", "return", "self", "spawn",
         "string", "tagof", "tl", "to", "type","while",
 };
+static int KEYWORD_COUNT = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
+
+static char *PUNCT[] = {
+        "+", "-", "*", "/", "%", "&", "|", "^", "==", "<", ">", "<=", ">=",
+        "!=", "<<", ">>", "&&", "||", "<-", "::", "=", "+=", "-=", "*=", "/=",
+        "%=", "&=", "|=", "^=", "<<=", ">>=", ":=", "~", "++", "--", "!", "**",
+        ":", ";", "(", ")", "{", "}", "[", "]", ",", ".", "->", "=>",
+};
+static int PUNCT_COUNT = sizeof(PUNCT) / sizeof(PUNCT[0]);
 
 /// Create a new token.
 /// \param self Pointer to the token to initialise.
@@ -26,10 +36,17 @@ static void Token_new(Token *self, LexerContext *context, TokenKind kind,
     self->next = NULL;
     self->location = start;
     self->length = end - start;
+
     self->string_value = NULL;
+    self->int_value = 0;
+    self->real_value = 0;
+
+    self->source_file = context->source_file;
+    self->source_file_name = context->source_file->name;
+    self->source_file_line = context->line_number;
+    self->source_file_column = context->column_number;
     self->at_beginning_of_line = context->at_beginning_of_line;
     self->follows_space = context->follows_space;
-    self->source_file = context->source_file;
 }
 
 /// Calculate the value of a digit in the given base.
@@ -378,7 +395,7 @@ static Token *read_char_literal(LexerContext *context, char *start, char **new_p
     if (*position == '\\') {
         c = (unsigned char) read_escaped_character(context, position + 1, &position);
     } else {
-        c = utf8_decode(&position, position);
+        c = utf8_decode(position, &position);
     }
 
     char *end = strchr(position, '\'');
@@ -395,23 +412,87 @@ static Token *read_char_literal(LexerContext *context, char *start, char **new_p
     return token;
 }
 
-bool lex(SourceFile *file, Token **tokens) {
+/// Read the length of text that matches a keyword exactly.
+/// \param context The lexer context.
+/// \param start The starting position in the source file.
+/// \param new_position The position to update to after the keyword.
+/// \param keywords The keywords to match.
+/// \param keyword_count The length of the keywords array.
+/// \return The length of the keyword matched, or 0 if no keyword was matched.
+static uptr read_keyword(LexerContext *context, char *start,char **new_position,
+                         char *keywords[], uptr keyword_count) {
+    for (uptr i = 0; i < keyword_count; i++) {
+        uptr len = strlen(keywords[i]);
+        if (strncmp(start, keywords[i], len) == 0) {
+            *new_position = start + len;
+            return len;
+        }
+    }
+    return 0;
+}
+
+/// Read the length of text that is a valid identifier.
+/// \param context The lexer context.
+/// \param start The starting position in the source file.
+/// \param new_position The position to update to after the identifier.
+static uptr read_identifier(LexerContext *context, char *start, char **new_position) {
+    char *p = start, *p_next;
+    uptr len = 0;
+    u32 c;
+
+    // Read the first character.
+    if (!(c = utf8_decode(p, &p_next))) {
+        error_at(context->source_file, start, "invalid character in identifier");
+    }
+
+    // Check if the first character is a valid start of an identifier.
+    if (!is_identifier_start(c)) {
+        return 0;
+    }
+
+    len += p_next - p;
+    p = p_next;
+
+    // Read the rest of the identifier.
+    while (true) {
+        if (!(c = utf8_decode(p, &p_next))) {
+            error_at(context->source_file, start, "invalid character in identifier");
+        }
+
+        if (!is_identifier_rest(c)) {
+            break;
+        }
+
+        len += p_next - p;
+        p = p_next;
+    }
+
+    *new_position = p;
+    assert(len == p - start);
+    return len;
+}
+
+Token *lex(SourceFile *file) {
     char *p = file->contents;
-    Token last_token = {}, *current = &last_token;
+    Token head = {}, *current = &head;
 
     LexerContext context = {
         .source_file = file,
         .at_beginning_of_line = true,
-        .follows_space = false
+        .follows_space = false,
+        .line_number = 1,
+        .column_number = 1,
     };
 
     while (*p) {
         // Skip comments
         if (*p == '#') {
             p++;
+            context.column_number++;
             // Advance to the end of the line
             while (*p && *p != '\n') {
                 p++;
+                context.column_number++;
             }
             context.follows_space = true;
             continue;
@@ -420,6 +501,8 @@ bool lex(SourceFile *file, Token **tokens) {
         // Skip newlines
         if (*p == '\n') {
             p++;
+            context.column_number = 1;
+            context.line_number++;
             context.at_beginning_of_line = true;
             context.follows_space = false;
             continue;
@@ -428,6 +511,7 @@ bool lex(SourceFile *file, Token **tokens) {
         // Skip whitespace
         if (isspace(*p)) {
             p++;
+            context.column_number++;
             context.follows_space = true;
             continue;
         }
@@ -437,25 +521,57 @@ bool lex(SourceFile *file, Token **tokens) {
         // Number literal
         if (isdigit(*p) || *p == '.' && isdigit(p[1])) {
             current = current->next = read_number_literal(&context, p, &p);
+            context.column_number += current->length;
+            continue;
         }
 
         // String literal
         if (*p == '"') {
             current = current->next = read_string_literal(&context, p, &p);
+            context.column_number += current->length;
+            continue;
         }
 
         // Character literal
         if (*p == '\'') {
             current = current->next = read_char_literal(&context, p, &p);
+            context.column_number += current->length;
+            continue;
         }
 
         // Keyword
+        uptr keyword_len = read_keyword(&context, p, &p, KEYWORDS, KEYWORD_COUNT);
+        if (keyword_len) {
+            current = current->next = calloc(1, sizeof(Token));
+            Token_new(current, &context, TOKEN_KEYWORD, p - keyword_len, p);
+            context.column_number += current->length;
+            continue;
+        }
 
         // Identifier
+        uptr ident_len = read_identifier(&context, p, &p);
+        if (ident_len) {
+            current = current->next = calloc(1, sizeof(Token));
+            Token_new(current, &context, TOKEN_IDENTIFIER, p - ident_len, p);
+            context.column_number += current->length;
+            continue;
+        }
 
         // Punctuator
+        uptr punct_len = read_keyword(&context, p, &p, PUNCT, PUNCT_COUNT);
+        if (punct_len) {
+            current = current->next = calloc(1, sizeof(Token));
+            Token_new(current, &context, TOKEN_PUNCTUATOR, p - punct_len, p);
+            context.column_number += current->length;
+            continue;
+        }
 
+        // Invalid character
+        error_at(context.source_file, p, "invalid character");
     }
 
     // End of file
+    current = current->next = calloc(1, sizeof(Token));
+    Token_new(current, &context, TOKEN_EOF, p, p);
+    return head.next;
 }

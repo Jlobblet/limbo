@@ -97,6 +97,10 @@ typedef struct LexerContext {
     bool at_beginning_of_line;
     /// Whether the current position follows a whitespace character.
     bool follows_space;
+    /// The line number
+    uptr line_number;
+    /// The column number
+    uptr column_number;
 } LexerContext;
 
 Token *read_number_literal(LexerContext *context, char *start, char **new_position);
@@ -105,7 +109,7 @@ Token *read_number_literal(LexerContext *context, char *start, char **new_positi
 
 // File manipulation
 
-bool lex(SourceFile *file, Token **tokens);
+Token *lex(SourceFile *file);
 
 /// Convert a source file into an array of `Token`s.
 /// \param filepath The path to the source file.
