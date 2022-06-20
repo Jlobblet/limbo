@@ -79,11 +79,11 @@ int main() {
         .contents = program,
         .file_number = 1
     };
-    Token *head = lex(&file);
+    Token *head = lex(&file), *current = head;
 
-    while (head != NULL) {
-        print_token(head);
-        head = head->next;
+    while (current != NULL) {
+        print_token(current);
+        current = current->next;
     }
 
     token_free(head);
