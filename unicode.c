@@ -200,8 +200,8 @@ bool is_identifier_start(u32 codepoint) {
     // TODO find out all allowed codepoints for the start of an identifier
     static Interval allowed_ranges[] = {
             {'A', 'Z'},
-            {'a', 'z'},
             {'_', '_'},
+            {'a', 'z'},
     };
     int num_ranges = sizeof(allowed_ranges) / sizeof(*allowed_ranges);
     assert(is_sorted_range(allowed_ranges, num_ranges));
@@ -213,8 +213,8 @@ bool is_identifier_rest(u32 codepoint) {
     static Interval allowed_ranges[] = {
             {'0', '9'},
             {'A', 'Z'},
-            {'a', 'z'},
             {'_', '_'},
+            {'a', 'z'},
     };
     int num_ranges = sizeof(allowed_ranges) / sizeof(*allowed_ranges);
     assert(is_sorted_range(allowed_ranges, num_ranges));
