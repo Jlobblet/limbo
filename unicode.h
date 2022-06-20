@@ -23,13 +23,12 @@ UTF8Length utf8_encode(u32 codepoint, char *buffer);
 /// the string does not contain a valid UTF-8 codepoint, then the pointer is
 /// not advanced, and the function returns `0` and `errno` is set to indicate
 /// the error.
-/// \param new_position The location of the next codepoint in the
-/// string.
-/// \param p The p to read the UTF-8 string from.
+/// \param p The pointer to read the UTF-8 string from.
+/// \param new_position The location of the next codepoint in the string.
 /// \return The codepoint read.
 /// \remark If the codepoint is invalid, then `errno` is set to `EILSEQ`.
 /// \remark If `p` or `new_position` is `NULL`, then `errno` is set to `EINVAL`.
-u32 utf8_decode(char **new_position, char *p);
+u32 utf8_decode(char *p, char **new_position);
 
 /// The number of columns required to display a given codepoint in a monospace
 /// font.

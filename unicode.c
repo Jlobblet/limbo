@@ -133,7 +133,7 @@ UTF8Length utf8_encode(u32 codepoint, char *buffer) {
     return UTF8_4;
 }
 
-u32 utf8_decode(char **new_position, char *p) {
+u32 utf8_decode(char *p, char **new_position) {
     if (p == NULL || new_position == NULL) {
         errno = EINVAL;
         return 0;
@@ -189,7 +189,7 @@ uptr display_width(char *str, uptr len) {
     uptr width = 0;
 
     while (str - start < len) {
-        u32 codepoint = utf8_decode(&str, str);
+        u32 codepoint = utf8_decode(str, &str);
         width += codepoint_width(codepoint);
     }
 
@@ -231,12 +231,12 @@ bool is_identifier(char *str, uptr len) {
         return false;
     }
     char *end = str + len;
-    u32 current = utf8_decode(&str, str);
+    u32 current = utf8_decode(str, &str);
     if (!is_identifier_start(current)) {
         return false;
     }
     while (str < end) {
-        current = utf8_decode(&str, str);
+        current = utf8_decode(str, &str);
         if (!is_identifier_rest(current)) {
             return false;
         }
