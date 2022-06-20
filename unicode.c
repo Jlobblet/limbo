@@ -133,7 +133,7 @@ UTF8Length utf8_encode(u32 codepoint, char *buffer) {
     return UTF8_4;
 }
 
-u32 utf8_decode(char *p, char **new_position) {
+u32 utf8_decode(const char *p, const char **new_position) {
     if (p == NULL || new_position == NULL) {
         errno = EINVAL;
         return 0;
@@ -175,7 +175,7 @@ u32 utf8_decode(char *p, char **new_position) {
     return codepoint;
 }
 
-uptr display_width(char *str, uptr len) {
+uptr display_width(const char *str, uptr len) {
     if (str == NULL) {
         errno = EINVAL;
         return 0;
@@ -185,7 +185,7 @@ uptr display_width(char *str, uptr len) {
         return 0;
     }
 
-    char *start = str;
+    const char *start = str;
     uptr width = 0;
 
     while (str - start < len) {
@@ -221,7 +221,7 @@ bool is_identifier_rest(u32 codepoint) {
     return is_in_sorted_range(codepoint, allowed_ranges, num_ranges);
 }
 
-bool is_identifier(char *str, uptr len) {
+bool is_identifier(const char *str, uptr len) {
     if (str == NULL) {
         errno = EINVAL;
         return false;
@@ -230,7 +230,7 @@ bool is_identifier(char *str, uptr len) {
     if (len == 0) {
         return false;
     }
-    char *end = str + len;
+    const char *end = str + len;
     u32 current = utf8_decode(str, &str);
     if (!is_identifier_start(current)) {
         return false;

@@ -40,27 +40,40 @@ void print_token(Token* token) {
             break;
     }
 
-    printf("%s: %s\n", kind, buffer);
+    printf("%s at (%lu, %lu): %s\n", kind,
+           token->source_file_line, token->source_file_column, buffer);
+}
+
+void token_free(Token* head) {
+    Token *current = head;
+    while (current != NULL) {
+        Token *next = current->next;
+        if (current->kind == TOKEN_STRING) {
+            free((void *)current->string_value);
+        }
+        free(current);
+        current = next;
+    }
 }
 
 int main() {
     char *program =
-            "implement Command;"
-            "include \"sys.m\";"
-            "include \"draw.m\";"
-            "sys:    Sys;"
-            "Command: module {"
-            "    init: fn (ctxt: ref Draw->Context, argv: list of string);"
-            "};"
-            "# The canonical \"Hello world\" program, enhanced"
-            "init(ctxt: ref Draw->Context, argv: list of string)"
-            "{"
-            "    sys = load Sys Sys->PATH;"
-            "    sys->print(\"hello world!\\n\");"
-            "    for (; argv!=nil; argv = tl argv)"
-            "        sys->print(\"%s \", hd argv);"
-            "    sys->print(\"\\n\");"
-            "}";
+            "implement Command;\n"
+            "include \"sys.m\";\n"
+            "include \"draw.m\";\n"
+            "sys:    Sys;\n"
+            "Command: module {\n"
+            "    init: fn (ctxt: ref Draw->Context, argv: list of string);\n"
+            "};\n"
+            "# The canonical \"Hello world\" program, enhanced\n"
+            "init(ctxt: ref Draw->Context, argv: list of string)\n"
+            "{\n"
+            "    sys = load Sys Sys->PATH;\n"
+            "    sys->print(\"hello world!\\n\");\n"
+            "    for (; argv!=nil; argv = tl argv)\n"
+            "        sys->print(\"%s \", hd argv);\n"
+            "    sys->print(\"\\n\");\n"
+            "}\n";
     SourceFile file = {
         .name = "test.m",
         .contents = program,
@@ -72,6 +85,8 @@ int main() {
         print_token(head);
         head = head->next;
     }
+
+    token_free(head);
 
     return EXIT_SUCCESS;
 }

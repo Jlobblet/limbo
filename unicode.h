@@ -28,7 +28,7 @@ UTF8Length utf8_encode(u32 codepoint, char *buffer);
 /// \return The codepoint read.
 /// \remark If the codepoint is invalid, then `errno` is set to `EILSEQ`.
 /// \remark If `p` or `new_position` is `NULL`, then `errno` is set to `EINVAL`.
-u32 utf8_decode(char *p, char **new_position);
+u32 utf8_decode(const char *p, const char **new_position);
 
 /// The number of columns required to display a given codepoint in a monospace
 /// font.
@@ -42,7 +42,7 @@ UTF8Length codepoint_width(u32 codepoint);
 /// \param len The length of the string.
 /// \return The number of columns needed to display the string.
 /// \remark If `str` is `NULL`, then `errno` is set to `EINVAL`.
-uptr display_width(char *str, uptr len);
+uptr display_width(const char *str, uptr len);
 
 /// Whether a given codepoint is allowed as the first character of an
 /// identifier.
@@ -63,6 +63,6 @@ bool is_identifier_rest(u32 codepoint);
 /// \param len The length of the string.
 /// \return Whether the string is a valid identifier.
 /// \remark If `str` is `NULL`, then `errno` is set to `EINVAL`.
-bool is_identifier(char *str, uptr len);
+bool is_identifier(const char *str, uptr len);
 
 #endif //LIMBO_UNICODE_H

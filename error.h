@@ -10,7 +10,7 @@
 /// \param ... The arguments for the format string.
 /// \remark This function will not return.
 /// \remark This functions exits the program with status `EXIT_FAILURE`.
-noreturn void error(char *fmt, ...);
+noreturn void error(const char *fmt, ...);
 
 /// Report an error message at the given location, then exit the program.
 /// \param file The source file containing the error.
@@ -19,7 +19,8 @@ noreturn void error(char *fmt, ...);
 /// \param ... The arguments for the format string.
 /// \remark This function will not return.
 /// \remark This functions exits the program with status `EXIT_FAILURE`.
-noreturn void error_at(SourceFile *file, char *location, char *fmt, ...);
+noreturn void error_at(const SourceFile *file, const char *location,
+                       const char *fmt, ...);
 
 /// Report an error message caused by the given token, then exit the program.
 /// \param token The token that caused the error.
@@ -27,12 +28,12 @@ noreturn void error_at(SourceFile *file, char *location, char *fmt, ...);
 /// \param ... The arguments for the format string.
 /// \remark This function will not return.
 /// \remark This functions exits the program with status `EXIT_FAILURE`.
-noreturn void error_token(Token *token, char *fmt, ...);
+noreturn void error_token(const Token *token, const char *fmt, ...);
 
 /// Report a warning message caused by the given token.
 /// \param token The token that caused the warning.
 /// \param fmt The format string for the warning message.
 /// \param ... The arguments for the format string.
-void warn_token(Token *token, char *fmt, ...);
+void warn_token(const Token *token, const char *fmt, ...);
 
 #endif //LIMBO_ERROR_H

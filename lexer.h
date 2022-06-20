@@ -29,11 +29,11 @@ typedef enum TokenKind {
 /// A struct containing metadata about a source file.
 typedef struct SourceFile {
     /// The path to the source file.
-    char *name;
+    const char *name;
     /// The number of the file in order of lexing.
     uptr file_number;
     /// The contents of the source file.
-    char *contents;
+    const char *contents;
 } SourceFile;
 
 typedef struct Token Token;
@@ -50,7 +50,7 @@ struct Token {
     /// In that case, the `TokenKind` of this token is `TOKEN_EOF`.
     Token *next;
     /// Pointer to the start of the token in the source file.
-    char *location;
+    const char *location;
     /// The length of the token in the source file.
     uptr length;
 
@@ -58,7 +58,7 @@ struct Token {
 
     /// The value of the token if it is a string literal.
     /// \remark If `TokenKind` is not `TOKEN_STRING`, then this is `NULL`.
-    char *string_value;
+    const char *string_value;
     /// The value of the token if it is an integral number literal.
     /// \remark If `TokenKind` is not `TOKEN_INTEGRAL`, then this is zero.
     /// \remark If `TokenKind` is `TOKEN_INTEGRAL`, but the number is a real
@@ -77,9 +77,9 @@ struct Token {
     // Source file information
     /// The source file that this token came from.
     /// \see SourceFile
-    SourceFile *source_file;
+    const SourceFile *source_file;
     /// The file name of the source file that this token came from.
-    char *source_file_name;
+    const char *source_file_name;
     /// The line number of the token in the source file.
     uptr source_file_line;
     /// The column number of the token in the source file.
@@ -92,7 +92,9 @@ struct Token {
 
 typedef struct LexerContext {
     /// The source file that is being lexed.
-    SourceFile *source_file;
+    const SourceFile *source_file;
+    /// The current position in the source file.
+    const char *position;
     /// Whether the current position is at the start of a line.
     bool at_beginning_of_line;
     /// Whether the current position follows a whitespace character.
@@ -103,18 +105,24 @@ typedef struct LexerContext {
     uptr column_number;
 } LexerContext;
 
-Token *read_number_literal(LexerContext *context, char *start, char **new_position);
 
 // Token manipulation
 
 // File manipulation
 
-Token *lex(SourceFile *file);
+/// Create a lexer context from a source file.
+/// \param file The source file to lex.
+/// \return The lexer context.
+LexerContext LexerContext_from(const SourceFile *file);
 
-/// Convert a source file into an array of `Token`s.
-/// \param filepath The path to the source file.
-/// \param tokens A pointer to the array of `Token`s.
-/// \see Token
-bool Lex_file(char *filepath, Token **tokens);
+/// Lex a single token from a source file.
+/// \param context The lexer context.
+/// \param token The token to initialise.
+void lex_one(LexerContext *context, Token *token);
+
+/// Lex an entire file into a linked list of tokens.
+/// \param file The source file to lex.
+/// \return The first token in the linked list.
+Token *lex(SourceFile *file);
 
 #endif //LIMBO_LEXER_H
