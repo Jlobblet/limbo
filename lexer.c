@@ -14,7 +14,7 @@ static char *KEYWORDS[] = {
         "type", "adt", "alt", "big", "con", "for", "int", "len", "nil", "ref",
         "do", "fn", "hd", "if", "of", "or", "tl", "to",
 };
-static int KEYWORD_COUNT = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
+static uptr KEYWORD_COUNT = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
 
 static char *PUNCT[] = {
         "<<=", ">>=", "==", "<=", ">=", "!=", "<<", ">>", "&&", "||", "<-",
@@ -22,7 +22,7 @@ static char *PUNCT[] = {
         "**", "->", "=>", "+", "-", "*", "/", "%", "&", "|", "^", "<", ">",
         "=", "~", "!", ":", ";", "(", ")", "{", "}", "[", "]", ",", ".",
 };
-static int PUNCT_COUNT = sizeof(PUNCT) / sizeof(PUNCT[0]);
+static uptr PUNCT_COUNT = sizeof(PUNCT) / sizeof(PUNCT[0]);
 
 /// Create a new token.
 /// \param self Pointer to the token to initialise.
