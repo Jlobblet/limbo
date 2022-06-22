@@ -23,8 +23,8 @@ void print_token(Token* token) {
             kind = "KEYWORD";
             break;
         case TOKEN_STRING:
-            strncpy(buffer, token->string_value, token->length);
-            buffer[token->length] = '\0';
+            sprintf(buffer, "\"%s\"", token->string_value);
+            buffer[token->length + 2] = '\0';
             kind = "STRING";
             break;
         case TOKEN_INTEGRAL:
